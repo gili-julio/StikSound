@@ -23,6 +23,8 @@ export interface TimelineTrimBarProps {
   onRemoveAudio?: () => void;
   /** Video stickers: brings back the clip's own sound. */
   onRestoreVideoAudio?: () => void;
+  /** Loads the ready-made sound offered by the platform. */
+  onPickPreset?: () => void;
   labels: {
     placeholder: string;
     pickBtn: string;
@@ -32,6 +34,7 @@ export interface TimelineTrimBarProps {
     changeAudio?: string;
     removeAudio?: string;
     restoreVideoAudio?: string;
+    presetBtn?: string;
   };
 }
 
@@ -58,6 +61,7 @@ export const TimelineTrimBar: React.FC<TimelineTrimBarProps> = ({
   onTogglePlay,
   onRemoveAudio,
   onRestoreVideoAudio,
+  onPickPreset,
   labels
 }) => {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -142,6 +146,21 @@ export const TimelineTrimBar: React.FC<TimelineTrimBarProps> = ({
     );
   };
 
+  const renderPreset = () => {
+    if (!onPickPreset) return null;
+    return (
+      <button
+        type="button"
+        data-testid="preset-sound-btn"
+        className="stik-pill-btn stik-preset-btn"
+        disabled={isBusy}
+        onClick={onPickPreset}
+      >
+        {labels.presetBtn ?? "Preset"}
+      </button>
+    );
+  };
+
   return (
     <div
       data-testid="timeline-bar"
@@ -201,6 +220,7 @@ export const TimelineTrimBar: React.FC<TimelineTrimBarProps> = ({
           >
             {labels.pickBtn}
           </button>
+          {renderPreset()}
           {renderRestoreVideoAudio()}
           {renderDurationSwitch()}
         </form>
@@ -288,6 +308,7 @@ export const TimelineTrimBar: React.FC<TimelineTrimBarProps> = ({
                 🔇
               </button>
             )}
+            {renderPreset()}
             {renderRestoreVideoAudio()}
           </div>
         </div>

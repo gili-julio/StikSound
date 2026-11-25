@@ -50,5 +50,10 @@
   "restoreVideoAudio": "🎬 Use the video's sound",
   "audioRemovedToast": "Sound removed. Pick another sound for the video.",
   "videoWindowLabel": "🎬 Video part",
-  "videoWindowShortClip": "The whole clip fits in the selection"
+  "videoWindowShortClip": "The whole clip fits in the selection",
+  "whatsappHelpBtn": "📱 How to use it on WhatsApp",
+  "whatsappHelpTitle": "How to use it on WhatsApp",
+  "whatsappHelpSteps": "Use the 5s button: WhatsApp video stickers keep only about 5 seconds of sound.\nTap ⬇ and download the \"MP4 video\".\nMove the MP4 to your phone's gallery. Android: it lands in Downloads (the Gallery app shows it). iPhone: in Share, tap \"Save Video\" so it goes to Photos. On a PC: the file is in Downloads; move it to your phone (cable, Google Drive or by sending it to yourself) and save it to the gallery.\nIn WhatsApp for Android, open a chat, tap the emoji icon 😊, go to the stickers tab and tap \"Create\" (or +).\nPick the video from the gallery, adjust the crop and send it. The sound sticker shows a speaker icon 🔊; tap it to play.",
+  "whatsappHelpNote": "Making sound stickers from a video is still a gradual WhatsApp rollout (Android beta) and button names may change. If you don't see the option, send the MP4 as a normal video. WhatsApp decides the final duration and audio.",
+  "presetGemidaoBtn": "Colocar gemidão do zap"
 }

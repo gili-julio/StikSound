@@ -3,6 +3,7 @@ import {
   EXPORT_PROFILES,
   LIMITS,
   ProjectController,
+  StikSoundError,
   computeSquareCrop,
   createProject,
   formatError,
@@ -18,6 +19,7 @@ import {
 } from "@stiksound/core";
 import enLocale from "../locales/en.json";
 import esLocale from "../locales/es.json";
+import ptLocale from "../locales/pt.json";
 import { TimelineTrimBar } from "./TimelineTrimBar";
 import { VideoWindowBar } from "./VideoWindowBar";
 
@@ -42,6 +44,13 @@ export interface PlatformOptions {
   myInstantsUrl?: boolean;
   /** Offer short video clips (MP4/MOV/WebM) in the sticker picker. Needs the web media engine. Default false. */
   videoStickers?: boolean;
+  /** Ready-made sound offered with one tap (served next to the page). */
+  presetSound?: PresetSound;
+}
+
+export interface PresetSound {
+  url: string;
+  fileName: string;
 }
 
 const IMAGE_ACCEPT = "image/png,image/jpeg,image/webp,image/gif,.png,.jpg,.jpeg,.webp,.gif";
@@ -59,7 +68,8 @@ export interface StikSoundMinimalAppProps {
   labelOverrides?: Partial<Record<LocaleCode, Partial<UiLabels>>>;
 }
 
-const LOCALES: Record<LocaleCode, UiLabels> = { es: esLocale, en: enLocale };
+const LOCALES: Record<LocaleCode, UiLabels> = { es: esLocale, en: enLocale, pt: ptLocale };
+const LOCALE_ORDER: LocaleCode[] = ["pt", "es", "en"];
 
 function audioMimeType(format: string): string {
   switch (format) {
@@ -90,6 +100,7 @@ export const StikSoundMinimalApp: React.FC<StikSoundMinimalAppProps> = ({
   const allowTransparent = platform?.transparentVideo !== false;
   const allowMyInstantsUrl = platform?.myInstantsUrl !== false;
   const allowVideoStickers = platform?.videoStickers === true;
+  const presetSound = platform?.presetSound;
   const controller = useMemo(() => new ProjectController(engine, providers), [engine, providers]);
   const [locale, setLocale] = useState<LocaleCode>(initialLocale);
   const [project, setProject] = useState<ProjectWorkspaceState>(() => initialState ?? createProject());
@@ -99,6 +110,7 @@ export const StikSoundMinimalApp: React.FC<StikSoundMinimalAppProps> = ({
   const [menuOpen, setMenuOpen] = useState(false);
   const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [whatsappHelpOpen, setWhatsappHelpOpen] = useState(false);
   const [readyArtifact, setReadyArtifact] = useState<ExportArtifact | null>(null);
   const [maxDurationMs, setMaxDurationMs] = useState<5000 | 10000>(10_000);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -249,6 +261,17 @@ export const StikSoundMinimalApp: React.FC<StikSoundMinimalAppProps> = ({
     },
     [controller, project, effectiveMaxAudioMs, handleError, stopPlayback]
   );
+
+  const importPresetSound = useCallback(async () => {
+    if (!presetSound) return;
+    try {
+      const res = await fetch(presetSound.url);
+      if (!res.ok) throw new StikSoundError("unsupported-audio", `Preset sound HTTP ${res.status}`);
+      await importAudioBytes(new Uint8Array(await res.arrayBuffer()), presetSound.fileName);
+    } catch (err) {
+      handleError(err);
+    }
+  }, [presetSound, importAudioBytes, handleError]);
 
   const importMyInstantsUrl = useCallback(
     async (rawUrl: string) => {
@@ -721,7 +744,22 @@ export const StikSoundMinimalApp: React.FC<StikSoundMinimalAppProps> = ({
             >
               {copy.menuSaveProject}
             </button>
-            <button type="button" onClick={() => setLocale((l) => (l === "es" ? "en" : "es"))}>
+            <button
+              type="button"
+              data-testid="menu-whatsapp-help"
+              onClick={() => {
+                setMenuOpen(false);
+                setWhatsappHelpOpen(true);
+              }}
+            >
+              {copy.whatsappHelpBtn}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setLocale((l) => LOCALE_ORDER[(LOCALE_ORDER.indexOf(l) + 1) % LOCALE_ORDER.length]!)
+              }
+            >
               {copy.menuLanguage}: {locale.toUpperCase()}
             </button>
             <button
@@ -797,6 +835,14 @@ export const StikSoundMinimalApp: React.FC<StikSoundMinimalAppProps> = ({
               onClick={() => setDownloadMenuOpen((o) => !o)}
             >
               ⬇ {copy.downloadBtnLabel}
+            </button>
+            <button
+              type="button"
+              data-testid="ready-whatsapp-help-btn"
+              className="stik-pill-btn"
+              onClick={() => setWhatsappHelpOpen(true)}
+            >
+              {copy.whatsappHelpBtn}
             </button>
             <button
               type="button"
@@ -971,6 +1017,7 @@ export const StikSoundMinimalApp: React.FC<StikSoundMinimalAppProps> = ({
         onChangeMaxWindowMs={handleMaxDurationChange}
         onTogglePlay={togglePlay}
         onRemoveAudio={handleRemoveAudio}
+        onPickPreset={presetSound ? importPresetSound : undefined}
         onRestoreVideoAudio={stickerIsVideo && !audioFromVideo ? handleRestoreVideoAudio : undefined}
         labels={{
           placeholder: copy.audioInputPlaceholder,
@@ -980,9 +1027,31 @@ export const StikSoundMinimalApp: React.FC<StikSoundMinimalAppProps> = ({
           maxDurationAria: copy.maxDurationAria,
           changeAudio: copy.changeAudio,
           removeAudio: copy.removeAudio,
-          restoreVideoAudio: copy.restoreVideoAudio
+          restoreVideoAudio: copy.restoreVideoAudio,
+          presetBtn: copy.presetGemidaoBtn
         }}
       />
+
+      {whatsappHelpOpen && (
+        <div className="stik-modal-backdrop" onClick={() => setWhatsappHelpOpen(false)}>
+          <div
+            className="stik-modal stik-help-modal"
+            data-testid="whatsapp-help-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>{copy.whatsappHelpTitle}</h3>
+            <ol className="stik-help-steps">
+              {copy.whatsappHelpSteps.split("\n").map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+            <p className="stik-help-note">{copy.whatsappHelpNote}</p>
+            <button type="button" onClick={() => setWhatsappHelpOpen(false)}>
+              {copy.close}
+            </button>
+          </div>
+        </div>
+      )}
 
       {aboutOpen && (
         <div className="stik-modal-backdrop" onClick={() => setAboutOpen(false)}>

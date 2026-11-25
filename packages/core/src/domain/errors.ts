@@ -12,7 +12,7 @@ export type StikSoundErrorCode =
   | "package-invalid"
   | "export-unsupported";
 
-export type LocaleCode = "es" | "en";
+export type LocaleCode = "es" | "en" | "pt";
 
 export interface LocalizedErrorCopy {
   title: string;
@@ -28,6 +28,10 @@ export const ERROR_CATALOG: Record<StikSoundErrorCode, Record<LocaleCode, Locali
     en: {
       title: "This file is not a supported image (use PNG, WebP, JPG, or GIF).",
       action: "Paste another image or drop a PNG or GIF file."
+    },
+    pt: {
+      title: "Este arquivo não é uma imagem compatível (use PNG, WebP, JPG ou GIF).",
+      action: "Cole outra imagem com Ctrl+V/Cmd+V ou arraste um PNG ou GIF."
     }
   },
   "unsupported-audio": {
@@ -38,6 +42,10 @@ export const ERROR_CATALOG: Record<StikSoundErrorCode, Record<LocaleCode, Locali
     en: {
       title: "Could not decode this audio or the format is unsupported.",
       action: "Use an MP3, WAV, OGG, M4A file or paste a valid MyInstants link."
+    },
+    pt: {
+      title: "Não foi possível ler este áudio ou o formato não é compatível.",
+      action: "Use um arquivo MP3, WAV, OGG, M4A ou cole um link válido do MyInstants."
     }
   },
   "unsupported-codec": {
@@ -48,6 +56,10 @@ export const ERROR_CATALOG: Record<StikSoundErrorCode, Record<LocaleCode, Locali
     en: {
       title: "This browser build cannot encode this clip with its available codecs.",
       action: "Download the .stiksound.zip package and open it in the StikSound desktop app."
+    },
+    pt: {
+      title: "Este navegador não consegue codificar o vídeo ou o áudio com os codecs disponíveis.",
+      action: "Baixe o pacote .stiksound.zip e abra no app de desktop StikSound."
     }
   },
   "encode-failed": {
@@ -58,6 +70,10 @@ export const ERROR_CATALOG: Record<StikSoundErrorCode, Record<LocaleCode, Locali
     en: {
       title: "Failed while encoding the output file.",
       action: "Try switching the export format in ⋯ or retry with another input."
+    },
+    pt: {
+      title: "Ocorreu um erro ao gerar o arquivo final.",
+      action: "Tente mudar o formato de saída em ⋯ ou tente de novo com outro arquivo."
     }
   },
   "unsupported-video": {
@@ -68,6 +84,10 @@ export const ERROR_CATALOG: Record<StikSoundErrorCode, Record<LocaleCode, Locali
     en: {
       title: "This video could not be opened here.",
       action: "Try an MP4 video or one recorded with your phone camera."
+    },
+    pt: {
+      title: "Não foi possível abrir este vídeo aqui.",
+      action: "Tente um vídeo MP4 ou um gravado com a câmera do celular."
     }
   },
   "file-too-large": {
@@ -78,6 +98,10 @@ export const ERROR_CATALOG: Record<StikSoundErrorCode, Record<LocaleCode, Locali
     en: {
       title: "File exceeds the allowed size or duration limit (20 MB image / 100 MB or 60 s video / 25 MB or 3 min audio).",
       action: "Use a smaller file or trim it externally first."
+    },
+    pt: {
+      title: "O arquivo passa do limite permitido (20 MB imagem / 100 MB ou 60 s vídeo / 25 MB ou 3 min áudio).",
+      action: "Use um arquivo mais leve ou corte antes."
     }
   },
   "url-rejected": {
@@ -88,6 +112,10 @@ export const ERROR_CATALOG: Record<StikSoundErrorCode, Record<LocaleCode, Locali
     en: {
       title: "URL rejected by security policy: only HTTPS MyInstants links are allowed.",
       action: "Copy a valid myinstants.com link and try again."
+    },
+    pt: {
+      title: "Link recusado por segurança: só são aceitos links HTTPS do MyInstants.",
+      action: "Copie o link direto do myinstants.com e tente de novo."
     }
   },
   "remote-unavailable": {
@@ -98,6 +126,10 @@ export const ERROR_CATALOG: Record<StikSoundErrorCode, Record<LocaleCode, Locali
     en: {
       title: "Could not retrieve the sound from MyInstants.",
       action: "Check your connection or that the sound still exists, or drop a local audio file."
+    },
+    pt: {
+      title: "Não foi possível baixar o som do MyInstants.",
+      action: "Confira sua conexão ou se o som ainda existe, ou use um áudio local."
     }
   },
   "trim-out-of-range": {
@@ -108,6 +140,10 @@ export const ERROR_CATALOG: Record<StikSoundErrorCode, Record<LocaleCode, Locali
     en: {
       title: "The selected audio range must be between 0.1 s and the selected maximum (5 s or 10 s).",
       action: "Adjust the timeline so the selection fits within 5 or 10 seconds."
+    },
+    pt: {
+      title: "O trecho selecionado deve durar entre 0,1 s e o máximo escolhido (5 s ou 10 s).",
+      action: "Ajuste a barra de tempo para a seleção caber em 5 ou 10 segundos."
     }
   },
   "sticker-too-large": {
@@ -118,6 +154,10 @@ export const ERROR_CATALOG: Record<StikSoundErrorCode, Record<LocaleCode, Locali
     en: {
       title: "The WebP sticker could not fit under WhatsApp's 100 KB limit.",
       action: "Export as a 5s or 10s video or try a simpler image."
+    },
+    pt: {
+      title: "A figurinha WebP passa do limite de 100 KB exigido pelo WhatsApp.",
+      action: "Exporte como vídeo (5 s ou 10 s) ou use uma imagem mais simples."
     }
   },
   "package-invalid": {
@@ -128,6 +168,10 @@ export const ERROR_CATALOG: Record<StikSoundErrorCode, Record<LocaleCode, Locali
     en: {
       title: "The .stiksound.zip package is invalid or contains unsafe paths.",
       action: "Ensure this is an unmodified StikSound project package."
+    },
+    pt: {
+      title: "O pacote .stiksound.zip é inválido ou tem caminhos inseguros.",
+      action: "Confira se é um projeto exportado pelo StikSound sem alterações."
     }
   },
   "export-unsupported": {
@@ -138,6 +182,10 @@ export const ERROR_CATALOG: Record<StikSoundErrorCode, Record<LocaleCode, Locali
     en: {
       title: "Direct native WhatsApp sticker export is not supported yet.",
       action: "The MP4 is a video, not a sticker: pasting or sharing it in the chat sends it as a video. Only on some Android beta accounts, which are not officially documented, can you try Create sticker and pick the video from the gallery; WhatsApp decides the duration and audio."
+    },
+    pt: {
+      title: "A exportação nativa direto para o WhatsApp ainda não está disponível.",
+      action: "O MP4 é um vídeo, não uma figurinha: colar ou compartilhar no chat envia como vídeo. Só em algumas contas do beta do Android, sem documentação oficial, dá pra tentar Criar figurinha escolhendo o vídeo na galeria; a duração e o áudio são decididos pelo WhatsApp."
     }
   }
 };

@@ -101,7 +101,7 @@ const webLabels: Record<LocaleCode, Partial<UiLabels>> = {
     downloadFmtMp4: "Video MP4 (5s / 10s)",
     exportSuccessVideo: "Listo. Si no elegiste dónde guardarlo, búscalo en Archivos → Descargas.",
     aboutRights:
-      "Versión web. Todo se procesa en tu teléfono; nada se sube a internet. Para usar un sonido de MyInstants, descárgalo primero desde Safari y luego elígelo con el botón de audio. El video dura como máximo 5 o 10 segundos, según el botón de la barra (por defecto, 10).",
+      "Versión web. Todo se procesa en tu teléfono; nada se sube a internet. Para usar un sonido de MyInstants, descárgalo primero desde Safari y luego elígelo con el botón de audio. El video dura como máximo 5 o 10 segundos, según el botón de la barra (por defecto, 10). Proyecto original: StikSound, de SilverFeit (github.com/SilverFeit/StikSound).",
     ...(isTouch
       ? {
           stickerDropTitle: "Toca para elegir tu sticker",
@@ -121,7 +121,7 @@ const webLabels: Record<LocaleCode, Partial<UiLabels>> = {
     downloadFmtMp4: "MP4 video (5s / 10s)",
     exportSuccessVideo: "Done. If you didn't pick a place, look in Files → Downloads.",
     aboutRights:
-      "Web version. Everything runs on your phone; nothing is uploaded. To use a MyInstants sound, download it in Safari first, then pick it with the sound button. The video is at most 5 or 10 seconds, chosen with the bar button (10 by default).",
+      "Web version. Everything runs on your phone; nothing is uploaded. To use a MyInstants sound, download it in Safari first, then pick it with the sound button. The video is at most 5 or 10 seconds, chosen with the bar button (10 by default). Original project: StikSound by SilverFeit (github.com/SilverFeit/StikSound).",
     ...(isTouch
       ? {
           stickerDropTitle: "Tap to choose your sticker",
@@ -129,10 +129,32 @@ const webLabels: Record<LocaleCode, Partial<UiLabels>> = {
           hoverCropHint: "Drag to frame"
         }
       : { stickerDropHint: "Drop or click: PNG, GIF, WebP, JPG or a short video (MP4, MOV)" })
+  },
+  pt: {
+    exportTooltip: "Criar o vídeo e compartilhar",
+    exportDisabledMissingAudio: "Adicione um áudio (MP3, M4A, WAV)",
+    audioPickBtn: "🎵 Escolher áudio (MP3, M4A, WAV)",
+    copyAgainBtn: "Compartilhar",
+    downloadTooltip: "Salvar",
+    downloadBtnLabel: "Salvar",
+    downloadChooseFormat: "Escolha o que salvar:",
+    downloadFmtMp4: "Vídeo MP4 (5s / 10s)",
+    exportSuccessVideo:
+      "Pronto. Se você não escolheu onde salvar, procure em Arquivos → Downloads. Veja \"Como usar no WhatsApp\" para virar figurinha com som.",
+    aboutRights:
+      "Versão web. Tudo é processado no seu celular; nada é enviado para a internet. Para usar um som do MyInstants, baixe ele antes e depois escolha no botão de áudio. O vídeo dura no máximo 5 ou 10 segundos, conforme o botão da barra (padrão: 10). Projeto original: StikSound, de SilverFeit (github.com/SilverFeit/StikSound).",
+    ...(isTouch
+      ? {
+          stickerDropTitle: "Toque para escolher sua figurinha",
+          stickerDropHint: "Foto, GIF ou vídeo curto de Fotos ou Arquivos",
+          hoverCropHint: "Arraste para enquadrar"
+        }
+      : { stickerDropHint: "Arraste ou clique: PNG, GIF, WebP, JPG ou vídeo curto (MP4, MOV)" })
   }
 };
 
-const locale: LocaleCode = navigator.language.toLowerCase().startsWith("es") ? "es" : "en";
+const browserLanguage = navigator.language.toLowerCase();
+const locale: LocaleCode = browserLanguage.startsWith("es") ? "es" : browserLanguage.startsWith("en") ? "en" : "pt";
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
@@ -141,7 +163,12 @@ createRoot(document.getElementById("root")!).render(
       providers={[]}
       shell={shell}
       initialLocale={locale}
-      platform={{ transparentVideo: false, myInstantsUrl: false, videoStickers: true }}
+      platform={{
+        transparentVideo: false,
+        myInstantsUrl: false,
+        videoStickers: true,
+        presetSound: { url: "./sounds/gemidao-do-zap.mp3", fileName: "gemidao-do-zap.mp3" }
+      }}
       labelOverrides={webLabels}
     />
   </React.StrictMode>
