@@ -498,3 +498,63 @@ textarea {
   max-width: 340px;
   font-size: 13px;
 }
+
+.stik-audio-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.stik-icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: var(--border);
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.stik-icon-btn:disabled,
+.stik-pill-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.stik-video-window-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.stik-video-window-label {
+  font-size: 12px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.stik-video-window-track {
+  position: relative;
+  flex: 1;
+  min-width: 140px;
+  height: 14px;
+  background: var(--bg);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.stik-video-window-selection {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(37, 211, 102, 0.3);
+  border-left: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+}

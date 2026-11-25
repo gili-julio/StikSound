@@ -44,5 +44,11 @@
   "exportSuccessBundle": "Bundle saved. Note: it contains image and sound as separate files; WhatsApp may treat the image as a normal sticker.",
   "close": "Close",
   "shareReadyToast": "Video ready. Tap \"Share\" to send it to WhatsApp or save it to Photos.",
-  "videoSilentToast": "This video has no sound (or it could not be read). You can pick a sound with the audio button."
+  "videoSilentToast": "This video has no sound (or it could not be read). You can pick a sound with the audio button.",
+  "changeAudio": "Change sound",
+  "removeAudio": "Remove sound",
+  "restoreVideoAudio": "🎬 Use the video's sound",
+  "audioRemovedToast": "Sound removed. Pick another sound for the video.",
+  "videoWindowLabel": "🎬 Video part",
+  "videoWindowShortClip": "The whole clip fits in the selection"
 }

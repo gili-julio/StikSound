@@ -35,6 +35,8 @@ export interface StickerEdit {
   matte_color?: string;
   crop_x?: number;
   crop_y?: number;
+  /** Video stickers with a replaced sound: where the rendered part of the clip starts. */
+  video_start_ms?: number;
 }
 
 export interface StickerAsset {

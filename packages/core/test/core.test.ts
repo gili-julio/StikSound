@@ -305,4 +305,75 @@ describe("packages/core domain and use cases", () => {
     const mp4MinGif = await ctrl.exportProject(proj, "video-mp4", 5_000);
     expect(mp4MinGif.durationMs).toBe(2_000);
   });
+  it("replaces a video's own sound, picks the video part on its own, and restores the clip sound", async () => {
+    const renderRequests: Array<{ videoOffsetMs?: number; startMs: number; endMs: number }> = [];
+    const engine = makeFakeEngine({
+      async probeImage() {
+        return { format: "mp4", width: 512, height: 512, has_alpha: false, animated: true, frame_count: 600, duration_ms: 20_000 };
+      },
+      async extractAudioTrack() {
+        return { wavBytes: new Uint8Array([9, 9, 9, 9]), silent: false };
+      },
+      async renderVideo(req) {
+        renderRequests.push({ videoOffsetMs: req.videoOffsetMs, startMs: req.startMs, endMs: req.endMs });
+        return {
+          bytes: new Uint8Array([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70]),
+          mimeType: "video/mp4",
+          extension: "mp4",
+          durationMs: Math.max(req.endMs - req.startMs, req.minDurationMs ?? 0),
+          hasAlpha: false
+        };
+      }
+    });
+    const ctrl = new ProjectController(engine);
+    let project = createProject("Clip");
+    project = await ctrl.importSticker(project, new Uint8Array([1, 2, 3]), "clip.mp4");
+    expect(project.manifest.audios[0]!.source.type).toBe("video-track");
+
+    project = ctrl.removeAudio(project);
+    expect(project.manifest.audios).toHaveLength(0);
+    expect(project.manifest.associations).toHaveLength(0);
+    expect(project.waveformPeaks).toBeNull();
+    expect([...project.assets.keys()]).toEqual([project.manifest.stickers[0]!.file]);
+
+    project = await ctrl.importAudioFile(project, new Uint8Array([1, 2, 3, 4]), "song.mp3", { type: "local" }, 5_000);
+    project = ctrl.updateAudioEdit(project, { start_ms: 12_000, end_ms: 17_000 }, 5_000);
+    project = ctrl.setVideoStart(project, 3_000);
+    expect(project.manifest.stickers[0]!.edit.video_start_ms).toBe(3_000);
+    expect(() => validateProjectManifest(project.manifest)).not.toThrow();
+
+    await ctrl.exportProject(project, "video-mp4", 5_000);
+    expect(renderRequests.at(-1)).toEqual({ videoOffsetMs: 3_000, startMs: 12_000, endMs: 17_000 });
+
+    expect(ctrl.setVideoStart(project, 99_000).manifest.stickers[0]!.edit.video_start_ms).toBe(20_000);
+    expect(ctrl.setVideoStart(project, -50).manifest.stickers[0]!.edit.video_start_ms).toBe(0);
+
+    project = await ctrl.restoreVideoAudio(project, 5_000);
+    expect(project.manifest.audios[0]!.source.type).toBe("video-track");
+    expect(project.manifest.stickers[0]!.edit.video_start_ms).toBe(0);
+    project = ctrl.updateAudioEdit(project, { start_ms: 4_000, end_ms: 9_000 }, 5_000);
+    await ctrl.exportProject(project, "video-mp4", 5_000);
+    expect(renderRequests.at(-1)).toEqual({ videoOffsetMs: 4_000, startMs: 4_000, endMs: 9_000 });
+  });
+
+  it("rejects an invalid video_start_ms in a project manifest", () => {
+    const manifest = createProject("Bad").manifest;
+    const withSticker = {
+      ...manifest,
+      stickers: [
+        {
+          id: "stk_aaaaaaaaaaaa",
+          file: "assets/stk_aaaaaaaaaaaa.mp4",
+          source_name: "clip.mp4",
+          format: "mp4",
+          width: 512,
+          height: 512,
+          has_alpha: false,
+          animated: true,
+          edit: { fit: "contain", offset_x: 0, offset_y: 0, scale: 1, stroke: "none", video_start_ms: -1 }
+        }
+      ]
+    };
+    expect(() => validateProjectManifest(withSticker)).toThrowError(/video_start_ms/);
+  });
 });

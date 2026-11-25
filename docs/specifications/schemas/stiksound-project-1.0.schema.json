@@ -100,7 +100,8 @@
         "stroke": { "enum": ["none", "white-8px"] },
         "matte_color": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
         "crop_x": { "type": "number", "minimum": 0, "maximum": 1 },
-        "crop_y": { "type": "number", "minimum": 0, "maximum": 1 }
+        "crop_y": { "type": "number", "minimum": 0, "maximum": 1 },
+        "video_start_ms": { "type": "number", "minimum": 0, "maximum": 60000 }
       }
     },
     "audio": {

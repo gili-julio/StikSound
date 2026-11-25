@@ -155,7 +155,7 @@ export function validateProjectManifest(raw: unknown): ProjectManifest {
     }
     assertAllowedKeys(
       s.edit,
-      ["fit", "offset_x", "offset_y", "scale", "stroke", "matte_color", "crop_x", "crop_y"],
+      ["fit", "offset_x", "offset_y", "scale", "stroke", "matte_color", "crop_x", "crop_y", "video_start_ms"],
       "stickerEdit"
     );
     if (s.edit.fit !== "contain") {
@@ -169,6 +169,15 @@ export function validateProjectManifest(raw: unknown): ProjectManifest {
     }
     if (s.edit.crop_y !== undefined && (typeof s.edit.crop_y !== "number" || s.edit.crop_y < 0 || s.edit.crop_y > 1)) {
       throw new StikSoundError("package-invalid", "Invalid sticker.edit.crop_y.");
+    }
+    if (
+      s.edit.video_start_ms !== undefined &&
+      (typeof s.edit.video_start_ms !== "number" ||
+        !Number.isFinite(s.edit.video_start_ms) ||
+        s.edit.video_start_ms < 0 ||
+        s.edit.video_start_ms > LIMITS.MAX_VIDEO_DURATION_MS)
+    ) {
+      throw new StikSoundError("package-invalid", "Invalid sticker.edit.video_start_ms.");
     }
     stickerIds.add(s.id);
   }

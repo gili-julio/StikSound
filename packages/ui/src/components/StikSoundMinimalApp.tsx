@@ -19,6 +19,7 @@ import {
 import enLocale from "../locales/en.json";
 import esLocale from "../locales/es.json";
 import { TimelineTrimBar } from "./TimelineTrimBar";
+import { VideoWindowBar } from "./VideoWindowBar";
 
 export type ShareOutcome = "shared" | "cancelled" | "needs-tap";
 
@@ -123,8 +124,11 @@ export const StikSoundMinimalApp: React.FC<StikSoundMinimalAppProps> = ({
     : maxDurationMs;
   const stickerIsVideo = Boolean(sticker) && isVideoFormat(sticker!.format);
   // Sound taken from the clip itself: the trim window also picks which part of the clip is used.
+  // Replaced sound: the video part is picked on its own bar.
   const audioFromVideo = audio?.source.type === "video-track";
-  const videoOffsetMs = stickerIsVideo && audioFromVideo ? assoc?.start_ms ?? 0 : 0;
+  const customVideoStartMs = sticker?.edit.video_start_ms ?? 0;
+  const videoOffsetMs = stickerIsVideo ? (audioFromVideo ? assoc?.start_ms ?? 0 : customVideoStartMs) : 0;
+  const videoWindowMs = assoc ? assoc.end_ms - assoc.start_ms : effectiveMaxAudioMs;
 
   const stickerFile = sticker?.file;
   const stickerFormat = sticker?.format;
@@ -359,6 +363,41 @@ export const StikSoundMinimalApp: React.FC<StikSoundMinimalAppProps> = ({
       stopPlayback();
     });
   }, [isPlaying, stopPlayback, audio, assoc, project.assets, videoOffsetMs]);
+
+  const handleRemoveAudio = () => {
+    stopPlayback();
+    setReadyArtifact(null);
+    setDownloadMenuOpen(false);
+    setErrorMessage(null);
+    setProject((prev) => controller.removeAudio(prev));
+    setStatusMessage(copy.audioRemovedToast);
+  };
+
+  const handleRestoreVideoAudio = async () => {
+    stopPlayback();
+    setIsBusy(true);
+    setErrorMessage(null);
+    setStatusMessage(null);
+    setReadyArtifact(null);
+    setDownloadMenuOpen(false);
+    try {
+      const next = await controller.restoreVideoAudio(project, effectiveMaxAudioMs);
+      setProject(next);
+      const peaks = next.waveformPeaks;
+      if (peaks && peaks.maxs.every((v) => v === 0)) {
+        setStatusMessage(copy.videoSilentToast);
+      }
+    } catch (err) {
+      handleError(err);
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const handleVideoStartChange = (startMs: number) => {
+    setReadyArtifact(null);
+    setProject((prev) => controller.setVideoStart(prev, startMs));
+  };
 
   const handleResetAll = () => {
     stopPlayback();
@@ -903,6 +942,17 @@ export const StikSoundMinimalApp: React.FC<StikSoundMinimalAppProps> = ({
         </div>
       )}
 
+      {!readyArtifact && stickerIsVideo && !audioFromVideo && (sticker!.duration_ms ?? 0) > 0 && (
+        <VideoWindowBar
+          clipDurationMs={sticker!.duration_ms!}
+          startMs={customVideoStartMs}
+          windowMs={videoWindowMs}
+          isBusy={isBusy}
+          onChangeStart={handleVideoStartChange}
+          labels={{ title: copy.videoWindowLabel, shortClip: copy.videoWindowShortClip }}
+        />
+      )}
+
       <TimelineTrimBar
         hasAudio={Boolean(audio)}
         durationMs={audio?.duration_ms ?? 0}
@@ -920,12 +970,17 @@ export const StikSoundMinimalApp: React.FC<StikSoundMinimalAppProps> = ({
         onChangeRange={handleRangeChange}
         onChangeMaxWindowMs={handleMaxDurationChange}
         onTogglePlay={togglePlay}
+        onRemoveAudio={handleRemoveAudio}
+        onRestoreVideoAudio={stickerIsVideo && !audioFromVideo ? handleRestoreVideoAudio : undefined}
         labels={{
           placeholder: copy.audioInputPlaceholder,
           pickBtn: copy.audioPickBtn,
           play: copy.playPreview,
           stop: copy.stopPreview,
-          maxDurationAria: copy.maxDurationAria
+          maxDurationAria: copy.maxDurationAria,
+          changeAudio: copy.changeAudio,
+          removeAudio: copy.removeAudio,
+          restoreVideoAudio: copy.restoreVideoAudio
         }}
       />
 

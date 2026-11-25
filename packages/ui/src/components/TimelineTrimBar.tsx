@@ -19,12 +19,19 @@ export interface TimelineTrimBarProps {
   onChangeRange: (startMs: number, endMs: number) => void;
   onChangeMaxWindowMs?: (maxMs: 5000 | 10000) => void;
   onTogglePlay: () => void;
+  /** Drops the current sound so another one can be picked. */
+  onRemoveAudio?: () => void;
+  /** Video stickers: brings back the clip's own sound. */
+  onRestoreVideoAudio?: () => void;
   labels: {
     placeholder: string;
     pickBtn: string;
     play: string;
     stop: string;
     maxDurationAria?: string;
+    changeAudio?: string;
+    removeAudio?: string;
+    restoreVideoAudio?: string;
   };
 }
 
@@ -49,6 +56,8 @@ export const TimelineTrimBar: React.FC<TimelineTrimBarProps> = ({
   onChangeRange,
   onChangeMaxWindowMs,
   onTogglePlay,
+  onRemoveAudio,
+  onRestoreVideoAudio,
   labels
 }) => {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -118,6 +127,21 @@ export const TimelineTrimBar: React.FC<TimelineTrimBarProps> = ({
     );
   };
 
+  const renderRestoreVideoAudio = () => {
+    if (!onRestoreVideoAudio) return null;
+    return (
+      <button
+        type="button"
+        data-testid="restore-video-audio-btn"
+        className="stik-pill-btn"
+        disabled={isBusy}
+        onClick={onRestoreVideoAudio}
+      >
+        {labels.restoreVideoAudio ?? "Video sound"}
+      </button>
+    );
+  };
+
   return (
     <div
       data-testid="timeline-bar"
@@ -177,6 +201,7 @@ export const TimelineTrimBar: React.FC<TimelineTrimBarProps> = ({
           >
             {labels.pickBtn}
           </button>
+          {renderRestoreVideoAudio()}
           {renderDurationSwitch()}
         </form>
       ) : (
@@ -237,6 +262,34 @@ export const TimelineTrimBar: React.FC<TimelineTrimBarProps> = ({
             {formatSec(selectedMs)} / {formatSec(maxWindowMs)}
           </span>
           {renderDurationSwitch()}
+
+          <div className="stik-audio-actions">
+            <button
+              type="button"
+              data-testid="change-audio-btn"
+              className="stik-icon-btn"
+              title={labels.changeAudio}
+              aria-label={labels.changeAudio ?? "Change sound"}
+              disabled={isBusy}
+              onClick={() => fileRef.current?.click()}
+            >
+              🎵
+            </button>
+            {onRemoveAudio && (
+              <button
+                type="button"
+                data-testid="remove-audio-btn"
+                className="stik-icon-btn"
+                title={labels.removeAudio}
+                aria-label={labels.removeAudio ?? "Remove sound"}
+                disabled={isBusy}
+                onClick={onRemoveAudio}
+              >
+                🔇
+              </button>
+            )}
+            {renderRestoreVideoAudio()}
+          </div>
         </div>
       )}
     </div>

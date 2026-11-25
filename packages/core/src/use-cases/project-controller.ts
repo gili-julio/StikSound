@@ -215,18 +215,61 @@ export class ProjectController {
     return withSticker;
   }
 
-  private resolveEffectiveMaxAudioMs(profileMaxMs: number, overrideMaxMs?: number): number {
-    if (overrideMaxMs === undefined || !Number.isFinite(overrideMaxMs)) {
-      return profileMaxMs;
+  /**
+   * Drops the current sound (the video's own track or a picked file) so another one can be chosen.
+   */
+  public removeAudio(state: ProjectWorkspaceState): ProjectWorkspaceState {
+    if (state.manifest.audios.length === 0) return state;
+    const nextAssets = new Map(state.assets);
+    for (const prev of state.manifest.audios) {
+      nextAssets.delete(prev.file);
     }
-    return Math.max(LIMITS.MIN_TRIM_DURATION_MS, Math.min(Math.round(overrideMaxMs), profileMaxMs));
+    return {
+      manifest: {
+        ...state.manifest,
+        project: { ...state.manifest.project, updated_at: nowUtcIso() },
+        audios: [],
+        associations: [],
+        active_association_id: null
+      },
+      assets: nextAssets,
+      waveformPeaks: null
+    };
   }
 
-  private resolveGifMinDurationMs(sticker: StickerAsset | undefined, maxAudioMs: number): number {
-    if (sticker && sticker.format === "gif" && sticker.animated && (sticker.duration_ms ?? 0) > 0) {
-      return Math.max(LIMITS.MIN_TRIM_DURATION_MS, Math.min(Math.round(sticker.duration_ms!), maxAudioMs));
+  /**
+   * Video stickers: brings back the clip's own sound after it was removed or replaced.
+   */
+  public async restoreVideoAudio(
+    state: ProjectWorkspaceState,
+    maxAudioMsOverride?: number
+  ): Promise<ProjectWorkspaceState> {
+    const sticker = state.manifest.stickers[0];
+    if (!sticker || !isVideoFormat(sticker.format) || !this.engine.extractAudioTrack) return state;
+    const stickerBytes = state.assets.get(sticker.file);
+    if (!stickerBytes) {
+      throw new StikSoundError("package-invalid", "Sticker asset missing from workspace.");
     }
-    return LIMITS.MIN_TRIM_DURATION_MS;
+    const track = await this.engine.extractAudioTrack(stickerBytes, sticker.duration_ms ?? 0);
+    const withAudio = await this.importAudioFile(
+      state,
+      track.wavBytes,
+      track.silent ? "Video sin sonido" : "Sonido del video",
+      { type: "video-track" },
+      maxAudioMsOverride
+    );
+    return this.updateStickerEdit(withAudio, { video_start_ms: 0 });
+  }
+
+  /**
+   * Video stickers with a replaced sound: picks which part of the clip is shown.
+   */
+  public setVideoStart(state: ProjectWorkspaceState, videoStartMs: number): ProjectWorkspaceState {
+    const sticker = state.manifest.stickers[0];
+    if (!sticker || !isVideoFormat(sticker.format)) return state;
+    const clipMs = sticker.duration_ms ?? 0;
+    const clamped = Math.max(0, Math.min(Math.round(videoStartMs), clipMs, LIMITS.MAX_VIDEO_DURATION_MS));
+    return this.updateStickerEdit(state, { video_start_ms: clamped });
   }
 
   public async importAudioFile(
@@ -651,8 +694,8 @@ export class ProjectController {
       animated: sticker.animated,
       stickerWidth: sticker.width,
       stickerHeight: sticker.height,
-      // Sound from the clip itself: render the same part of the clip. Other sound: clip from its start.
-      videoOffsetMs: audio.source.type === "video-track" ? assoc.start_ms : 0,
+      // Sound from the clip itself: render the same part of the clip. Other sound: the part the user picked.
+      videoOffsetMs: audio.source.type === "video-track" ? assoc.start_ms : sticker.edit.video_start_ms ?? 0,
       minDurationMs: expectedDurationMs,
       audioBytes,
       audioFormat: audio.format,
@@ -677,5 +720,19 @@ export class ProjectController {
       bytes: videoResult.bytes,
       durationMs: videoResult.durationMs
     };
+  }
+
+  private resolveEffectiveMaxAudioMs(profileMaxMs: number, overrideMaxMs?: number): number {
+    if (overrideMaxMs === undefined || !Number.isFinite(overrideMaxMs)) {
+      return profileMaxMs;
+    }
+    return Math.max(LIMITS.MIN_TRIM_DURATION_MS, Math.min(Math.round(overrideMaxMs), profileMaxMs));
+  }
+
+  private resolveGifMinDurationMs(sticker: StickerAsset | undefined, maxAudioMs: number): number {
+    if (sticker && sticker.format === "gif" && sticker.animated && (sticker.duration_ms ?? 0) > 0) {
+      return Math.max(LIMITS.MIN_TRIM_DURATION_MS, Math.min(Math.round(sticker.duration_ms!), maxAudioMs));
+    }
+    return LIMITS.MIN_TRIM_DURATION_MS;
   }
 }
